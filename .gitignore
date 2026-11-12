@@ -1,0 +1,8 @@
+.env
+*.env
+*.json.key
+*service-account*.json
+data/raw/
+__pycache__/
+*.pyc
+.venv/
