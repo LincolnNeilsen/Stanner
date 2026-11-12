@@ -1,0 +1,5 @@
+google-cloud-bigquery>=3.25
+requests>=2.32
+feedparser>=6.0
+python-dotenv>=1.0
+pyarrow>=17

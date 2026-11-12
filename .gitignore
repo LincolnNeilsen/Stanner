@@ -2,7 +2,10 @@
 *.env
 *.json.key
 *service-account*.json
-data/raw/
+gcp-key*.json
+secrets/
+auth.md
+data/
 __pycache__/
 *.pyc
 .venv/

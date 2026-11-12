@@ -1,0 +1,19 @@
+# Artists you follow. Each [[artist]] with follow = true (the default) is a seed follow; the
+# pipeline then auto-follows the whole MusicBrainz tree under it (members, sub-units, their members...).
+#
+# Find an MBID: search https://musicbrainz.org, open the artist, copy the UUID from the URL.
+# Entries with follow = false only set overrides for an artist reached through the tree.
+#
+# Optional fields:
+#   name               display name override
+#   youtube_channel_id UC... id, if MusicBrainz lacks it or has the wrong one
+#   subreddit          fan subreddit name (no "r/")
+#   news_query         Google News query, for names that are common words
+#                      (default: "Name", or "Member" "Group" for members)
+
+# Example (replace with your own):
+[[artist]]
+mbid = "e04d239e-9fa8-49b3-b9b7-9e439c3cb1d1"
+name = "SEVENTEEN"
+subreddit = "seventeen"
+news_query = '"SEVENTEEN" (kpop OR k-pop OR CARAT OR PLEDIS)'

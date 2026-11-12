@@ -64,13 +64,19 @@ Later goal (not in scope now): a multi-user web app where people make accounts a
 5. [ ] Create service account (BigQuery Data Editor + Job User), download JSON key to `C:\Users\lincn\Desktop\prjcts\secrets\gcp-key.json` (outside repo)
 6. [ ] Get API keys: YouTube (enable YouTube Data API v3 in the GCP project), Ticketmaster Discovery, setlist.fm
 7. [ ] Create local `.env` from `.env.example`
-8. [ ] `schema.sql` (tables + views)
-9. [ ] Seed: MusicBrainz dump → filter → Parquet → `bq load`; cache setlist.fm and YouTube back catalog to disk
-10. [ ] `ingest/<source>.py` fetchers, sharing one `load_and_merge()` + `ingest_runs` helper
-11. [ ] `.github/workflows/hourly.yml` and `daily.yml`; add repo secrets `GCP_SA_KEY`, `YOUTUBE_API_KEY`, `TICKETMASTER_API_KEY`, `SETLIST_FM_API_KEY`
+8. [x] `sql/schema.sql` (tables + views); run with `python -m stanner setup`
+9. [~] Seed code done (`stanner/seed.py`): MusicBrainz API crawl of the followed tree (not the full dump; only tens of artists needed) + YouTube back catalog + setlist.fm → `data/raw/` → Parquet → `bq load`. Needs keys to run.
+10. [x] Fetchers in `stanner/sources/`, shared `bq.merge_staging()` + `ingest_runs`. Dry runs verified for musicbrainz, youtube, news, reddit.
+11. [~] Workflows written; still need repo secrets `GCP_PROJECT`, `GCP_SA_KEY`, `YOUTUBE_API_KEY`, `TICKETMASTER_API_KEY`, `SETLIST_FM_API_KEY`
 12. [ ] Looker Studio dashboard (growth by source, last-run status, this year vs. 10-year monthly average)
 13. [ ] Architecture diagram + 30-second demo video
 14. [ ] Keep everything running until the one-week follow-up; record the outcome
+
+## Changes from the original plan
+- Repo now lives at `C:\Users\lincn\OneDrive\Desktop\pgm\Stanner`.
+- The BigQuery sandbox has no DML, so dedupe is an atomic `events UNION ALL new_rows` rewrite (`BQ_USE_DML=true` uses MERGE once billing is on).
+- `events` is not partitioned, because the sandbox's 60-day partition expiration would delete seeded history.
+- `auth.md` (git-ignored) tracks the accounts and keys needed.
 
 ## Not in the repo (recreate on a new machine)
 - `.env` (real keys) and `secrets/gcp-key.json`. These are git-ignored on purpose. Re-create them from the provider consoles, or move them through a password manager. Do not paste keys into chat or commit them.
