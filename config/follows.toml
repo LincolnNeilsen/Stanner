@@ -11,9 +11,193 @@
 #   news_query         Google News query, for names that are common words
 #                      (default: "Name", or "Member" "Group" for members)
 
-# Example (replace with your own):
+# ===================== K-pop =====================
 [[artist]]
-mbid = "e04d239e-9fa8-49b3-b9b7-9e439c3cb1d1"
-name = "SEVENTEEN"
-subreddit = "seventeen"
-news_query = '"SEVENTEEN" (kpop OR k-pop OR CARAT OR PLEDIS)'
+mbid = "8da127cc-c432-418f-b356-ef36210d82ac"
+name = "TWICE"
+subreddit = "twice"
+news_query = '"TWICE" (kpop OR k-pop OR JYP OR ONCE)'
+
+[[artist]]
+mbid = "b9545342-1e6d-4dae-84ac-013374ad8d7c"
+name = "IU"
+subreddit = "aiyu"
+news_query = '"IU" (singer OR kpop OR k-pop OR "Lee Ji-eun")'
+
+[[artist]]
+mbid = "8cea34d9-e1a5-4a92-87da-de947f741fe6"
+name = "Heize"
+
+[[artist]]
+mbid = "b2f2216a-d7a9-4ce0-8b8f-f494d9a8c196"
+name = "IVE"
+news_query = '"IVE" (kpop OR k-pop OR Starship OR "girl group")'
+
+[[artist]]
+mbid = "0d79fe8e-ba27-4859-bb8c-2f255f346853"
+name = "BTS"
+subreddit = "bangtan"
+news_query = '"BTS" (kpop OR k-pop OR ARMY OR HYBE OR "boy band")'
+
+[[artist]]
+mbid = "fcc7e9c8-3474-4221-b83a-27890982e0fa"
+name = "Wonder Girls"
+
+[[artist]]
+mbid = "b7442f18-d9be-4185-8b51-482510046156"
+name = "Girls' Generation"
+subreddit = "snsd"
+news_query = "\"Girls' Generation\" OR SNSD"
+
+[[artist]]
+mbid = "7f233cda-eacb-4235-b681-5f7be343a1a2"
+name = "ROSÉ"
+news_query = '"ROSÉ" BLACKPINK'
+
+[[artist]]
+mbid = "4f0cb3b7-6c06-4317-ae35-ddf3106a17ee"
+name = "Red Velvet"
+subreddit = "red_velvet"
+news_query = '"Red Velvet" (kpop OR k-pop OR SM OR "girl group")'
+
+[[artist]]
+mbid = "1ee37742-1e3d-4e61-84d2-bc85f4c1459a"
+name = "LE SSERAFIM"
+subreddit = "LeSserafim"
+
+[[artist]]
+mbid = "49204a7a-ed85-407a-828f-6fd46f1d8126"
+name = "NewJeans"
+subreddit = "NewJeans"
+
+[[artist]]
+mbid = "77191d5f-1045-4b3b-ad7f-12ea398db929"
+name = "DAY6"
+subreddit = "DAY6"
+
+[[artist]]
+mbid = "ec2bcb77-b9a1-49e2-bfe7-419586bbef48"
+name = "BIGBANG"
+subreddit = "bigbang"
+news_query = '"BIGBANG" (kpop OR k-pop OR "G-Dragon" OR YG)'
+
+[[artist]]
+mbid = "f99b7d67-4e63-4678-aa66-4c6ac0f7d24a"
+name = "PSY"
+news_query = '"PSY" (singer OR kpop OR k-pop OR rapper)'
+
+[[artist]]
+mbid = "9c15986d-ff1f-4d91-9708-f50f7445884f"
+name = "NCT"
+subreddit = "NCT"
+news_query = '"NCT" (kpop OR k-pop OR SM)'
+
+[[artist]]
+mbid = "6afff86d-fc4a-4446-a41e-f88e1322a5be"
+name = "KAI"
+news_query = '"KAI" EXO'
+
+[[artist]]
+mbid = "b3785a55-2cf6-497d-b8e3-cfa21a36f997"
+name = "EXO"
+subreddit = "exo"
+news_query = '"EXO" (kpop OR k-pop OR SM OR "boy group")'
+
+[[artist]]
+mbid = "5c6b4031-c0e6-468f-ada5-28c33b7d4e0e"
+name = "FIFTY FIFTY"
+news_query = '"FIFTY FIFTY" (kpop OR k-pop OR "girl group")'
+
+[[artist]]
+mbid = "06bb5fcc-f2b3-428d-b8e7-079060311b6d"
+name = "STAYC"
+subreddit = "STAYC"
+
+[[artist]]
+mbid = "6b128dd7-e998-4edb-a4f5-400fef190445"
+name = "ILLIT"
+subreddit = "ILLIT"
+
+[[artist]]
+mbid = "4142301a-8bd8-4ea0-b509-0baf84fe6906"
+name = "VIVIZ"
+
+[[artist]]
+mbid = "b51c672b-85e0-48fe-8648-470a2422229f"
+name = "aespa"
+subreddit = "aespa"
+
+[[artist]]
+mbid = "2fa469c4-a186-48d6-9d9f-d1d4bb716071"
+name = "ifeye"
+news_query = '"ifeye" (kpop OR k-pop OR "girl group")'
+
+[[artist]]
+mbid = "656d0024-7b5f-4089-9d3e-ce383f15f1b7"
+name = "BOYNEXTDOOR"
+subreddit = "BOYNEXTDOOR"
+
+[[artist]]
+mbid = "8d4e6a86-fa1c-4a1b-b8c4-3b58a46dde9f"
+name = "JEON SOMI"
+
+[[artist]]
+mbid = "705f04e2-fc5b-41ab-b837-1d850d44084a"
+name = "fromis_9"
+subreddit = "fromis"
+
+[[artist]]
+mbid = "57f1cdd6-cf32-4004-a095-3ef043c91b61"
+name = "Epik High"
+
+[[artist]]
+mbid = "5676c373-0569-4e64-9ac7-1ece03891334"
+name = "miss A"
+news_query = '"miss A" (kpop OR k-pop OR Suzy OR JYP)'
+
+# ===================== Country =====================
+[[artist]]
+mbid = "7e5cfc9a-e9e1-46f1-b81a-861b12049488"
+name = "Tim McGraw"
+
+[[artist]]
+mbid = "46510d46-ce20-4dde-b9ea-207e474353f4"
+name = "Brett Eldredge"
+
+[[artist]]
+mbid = "f45da029-7b00-4bf3-962c-0eeb20309cc4"
+name = "Keith Urban"
+
+[[artist]]
+mbid = "2294c553-58e4-425b-8bab-bee01f2d477a"
+name = "Scotty McCreery"
+
+[[artist]]
+mbid = "3248ed2d-bada-41b5-a7b6-ac88faa1f1ac"
+name = "The Chicks"
+news_query = '"The Chicks" (country OR band OR "Natalie Maines")'
+
+[[artist]]
+mbid = "70f0e309-5418-49b6-a130-666e2f76eecd"
+name = "Carrie Underwood"
+
+[[artist]]
+mbid = "b16c0872-31a7-4db9-8569-0e3146fcecfc"
+name = "Ella Langley"
+
+[[artist]]
+mbid = "e2529584-b250-4a22-821c-16d3d8120978"
+name = "Russell Dickerson"
+
+[[artist]]
+mbid = "2ec5396e-4fe9-4918-867f-34370e012093"
+name = "Brett Young"
+news_query = '"Brett Young" country'
+
+[[artist]]
+mbid = "2f951906-5629-4fef-a260-5033151c162a"
+name = "Toby Keith"
+
+[[artist]]
+mbid = "d1393ecb-431b-4fde-a6ea-d769f2f040cb"
+name = "Kacey Musgraves"

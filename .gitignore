@@ -5,6 +5,7 @@
 gcp-key*.json
 secrets/
 auth.md
+legal.md
 data/
 __pycache__/
 *.pyc

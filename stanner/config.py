@@ -28,7 +28,7 @@ USER_AGENT = os.getenv(
 # Overlap applied to every watermark so late-arriving items are re-seen (dedupe makes this safe).
 OVERLAP_DAYS = 1
 # Safety cap on the MusicBrainz tree walk.
-MAX_ARTISTS = int(os.getenv("MAX_ARTISTS", "300"))
+MAX_ARTISTS = int(os.getenv("MAX_ARTISTS", "600"))
 MAX_DEPTH = 6
 
 
