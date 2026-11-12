@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stanner</title>
+<style>
+:root {
+  --bg: #f6f6f4; --panel: #ffffff; --panel-2: #f0efec; --text: #1c1c1a; --muted: #6b6a65;
+  --line: #e2e0db; --accent: #3d5afe; --accent-soft: #e8ecff;
+  --release: #2e7d32; --video: #c62828; --announcement: #8e24aa; --appearance: #ef6c00;
+  --concert: #00838f; --news: #546e7a;
+  --ok: #2e7d32; --err: #c62828;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141413; --panel: #1d1d1b; --panel-2: #262624; --text: #ecebe6; --muted: #9b9a94;
+    --line: #33332f; --accent: #8c9eff; --accent-soft: #262b45;
+    --release: #81c784; --video: #ef9a9a; --announcement: #ce93d8; --appearance: #ffb74d;
+    --concert: #4dd0e1; --news: #b0bec5; --ok: #81c784; --err: #ef9a9a;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text);
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", sans-serif; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.layout { display: grid; grid-template-columns: 300px 1fr; height: 100vh; }
+aside { background: var(--panel); border-right: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; }
+.brand { padding: 16px 16px 8px; font-weight: 700; font-size: 18px; display: flex; justify-content: space-between; align-items: center; }
+.brand a { color: var(--text); }
+.search { padding: 0 12px 10px; }
+.home-btn { display: block; margin: 0 12px 10px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; color: var(--text); font-weight: 600; }
+.home-btn:hover { border-color: var(--accent); text-decoration: none; }
+.home-btn.active { background: var(--accent-soft); border-color: var(--accent); }
+.back { display: inline-block; margin-bottom: 10px; font-size: 13px; }
+.topic { font-size: 11px; color: var(--muted); border: 1px dashed var(--line); border-radius: 999px; padding: 0 6px; }
+.soon { color: var(--accent); font-weight: 600; }
+input[type=search] { width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--text); font: inherit; }
+.tree { overflow-y: auto; padding: 0 6px 16px; flex: 1; }
+.node { display: flex; align-items: center; gap: 4px; padding: 4px 6px; border-radius: 6px; cursor: pointer; user-select: none; }
+.node:hover { background: var(--panel-2); }
+.node.active { background: var(--accent-soft); }
+.node .caret { width: 16px; text-align: center; color: var(--muted); flex: none; font-size: 11px; }
+.node .nm { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.node .ct { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.node.ended .nm { color: var(--muted); }
+.kids { margin-left: 14px; border-left: 1px solid var(--line); padding-left: 4px; }
+.hint { color: var(--muted); font-size: 12px; }
+main { overflow-y: auto; min-height: 0; }
+.wrap { max-width: 1000px; margin: 0 auto; padding: 24px 24px 64px; }
+h1 { font-size: 28px; margin: 0; }
+h2 { font-size: 16px; margin: 28px 0 10px; }
+.sub { color: var(--muted); margin-top: 4px; }
+.links { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px; font-size: 13px; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: 3px 10px; font-size: 13px; cursor: pointer; color: var(--text); }
+.chip:hover { border-color: var(--accent); text-decoration: none; }
+.chip.former { color: var(--muted); border-style: dashed; }
+.chip.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin-top: 18px; }
+.tile { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px; cursor: pointer; }
+.tile:hover { border-color: var(--accent); }
+.tile .v { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.tile .l { color: var(--muted); font-size: 12px; }
+.toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 18px 0 8px; }
+.toolbar input[type=search] { width: 220px; }
+label.toggle { display: inline-flex; gap: 6px; align-items: center; font-size: 13px; color: var(--muted); cursor: pointer; }
+button { font: inherit; border: 1px solid var(--line); background: var(--panel); color: var(--text); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--accent); }
+.list { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.ev { display: grid; grid-template-columns: 92px 1fr; gap: 12px; padding: 10px 14px; border-top: 1px solid var(--line); align-items: start; }
+.ev:first-child { border-top: 0; }
+.ev .date { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; padding-top: 2px; }
+.ev .body { display: flex; gap: 12px; min-width: 0; }
+.ev img { width: 120px; height: 68px; object-fit: cover; border-radius: 6px; flex: none; background: var(--panel-2); }
+.ev .t { font-weight: 500; overflow-wrap: anywhere; }
+.ev .meta { color: var(--muted); font-size: 12px; margin-top: 3px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.pill { font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 999px; border: 1px solid currentColor; text-transform: lowercase; }
+.pill.release { color: var(--release); } .pill.video { color: var(--video); } .pill.announcement { color: var(--announcement); }
+.pill.concert { color: var(--concert); } .pill.news { color: var(--news); }
+.more { padding: 12px; text-align: center; border-top: 1px solid var(--line); }
+.empty, .loading { padding: 24px; text-align: center; color: var(--muted); }
+table { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; font-size: 13px; }
+th, td { text-align: left; padding: 8px 10px; border-top: 1px solid var(--line); }
+th { color: var(--muted); font-weight: 600; border-top: 0; }
+td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.ok { color: var(--ok); } .err { color: var(--err); }
+.menu-btn { display: none; }
+@media (max-width: 800px) {
+  .layout { grid-template-columns: 1fr; height: auto; }
+  aside { position: fixed; inset: 0 25% 0 0; z-index: 10; transform: translateX(-100%); transition: transform .2s; box-shadow: 0 0 30px rgba(0,0,0,.3); }
+  aside.open { transform: none; }
+  main { overflow: visible; }
+  .wrap { padding: 16px 16px 48px; }
+  .menu-btn { display: inline-block; margin-bottom: 12px; }
+  .ev { grid-template-columns: 1fr; gap: 4px; }
+  .ev img { width: 96px; height: 54px; }
+  .toolbar input[type=search] { width: 100%; }
+}
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside id="side">
+    <div class="brand"><a href="#/">Stanner</a></div>
+    <a class="home-btn" id="home" href="#/">⌂ All artists dashboard</a>
+    <div class="search"><input type="search" id="find" placeholder="Find an artist…" autocomplete="off"></div>
+    <div class="tree" id="tree"><div class="loading">Loading artists…</div></div>
+  </aside>
+  <main><div class="wrap" id="view"><div class="loading">Loading…</div></div></main>
+</div>
+<script>
+// release/announcement/video: official sources only · concert: setlist.fm/Ticketmaster · news: third-party
+const TYPES = ["release", "announcement", "video", "concert", "news"];
+const LABEL = { release: "Releases", video: "Videos", announcement: "Announcements", concert: "Concerts", news: "News" };
+const SOURCES = { youtube: "YouTube", news: "Google News", reddit: "Reddit", setlistfm: "setlist.fm", musicbrainz: "MusicBrainz", ticketmaster: "Ticketmaster" };
+let G = null;                       // graph from /api/graph
+const expanded = new Set();
+let current = null;
+
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const fmt = n => (n ?? 0).toLocaleString();
+// Date-only values (concert/release dates) are stored as 00:00 UTC; show them in UTC so they
+// don't slip to the previous day in US time zones.
+const dateOnly = iso => /T00:00:00(\.0+)?(\+00:00|Z)$/.test(iso || "");
+const day = iso => iso ? new Date(iso).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric", ...(dateOnly(iso) ? { timeZone: "UTC" } : {}) }) : "";
+const ago = iso => {
+  if (!iso) return "never";
+  const m = Math.round((Date.now() - new Date(iso)) / 60000);
+  return m < 60 ? `${m} min ago` : m < 2880 ? `${Math.round(m / 60)} h ago` : `${Math.round(m / 1440)} days ago`;
+};
+
+async function api(path, body) {
+  const r = await fetch(path, body ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : {});
+  if (!r.ok) throw new Error(`${path}: HTTP ${r.status}`);
+  return r.json();
+}
+
+const A = id => G.artists[id];
+const byName = (a, b) => A(a).name.localeCompare(A(b).name, undefined, { sensitivity: "base" });
+function descendants(id) {
+  const out = new Set([id]), q = [id];
+  while (q.length) for (const c of A(q.shift()).children) if (!out.has(c.id)) { out.add(c.id); q.push(c.id); }
+  return [...out];
+}
+const sumCounts = ids => ids.reduce((acc, id) => { for (const [t, n] of Object.entries(A(id).counts)) acc[t] = (acc[t] || 0) + n; return acc; }, {});
+const totalOf = ids => ids.reduce((s, id) => s + A(id).total, 0);
+
+/* ---------- sidebar ---------- */
+function nodeHtml(id, rel) {
+  const a = A(id), kids = [...new Set(a.children.map(c => c.id))];
+  const open = expanded.has(id);
+  const ended = rel && rel.ended;
+  let h = `<div class="node${current === id ? " active" : ""}${ended ? " ended" : ""}" data-id="${id}">
+    <span class="caret" data-toggle="${kids.length ? id : ""}">${kids.length ? (open ? "▾" : "▸") : ""}</span>
+    <span class="nm" title="${esc(a.mb_name)}">${esc(a.name)}</span><span class="ct">${fmt(totalOf(kids.length ? descendants(id) : [id]))}</span></div>`;
+  if (open && kids.length) {
+    const sorted = a.children.filter((c, i, arr) => arr.findIndex(x => x.id === c.id) === i)
+      .sort((x, y) => (x.ended - y.ended) || (A(y.id).kind === "group") - (A(x.id).kind === "group") || byName(x.id, y.id));
+    h += `<div class="kids">${sorted.map(c => nodeHtml(c.id, c)).join("")}</div>`;
+  }
+  return h;
+}
+function renderTree() {
+  const f = $("#find").value.trim().toLowerCase();
+  const el = $("#tree");
+  if (f) {
+    const hits = Object.values(G.artists).filter(a => a.name.toLowerCase().includes(f) || (a.mb_name || "").toLowerCase().includes(f))
+      .sort((a, b) => b.total - a.total).slice(0, 60);
+    el.innerHTML = hits.length ? hits.map(a => {
+      const p = a.parents[0] ? `<span class="hint"> · ${esc(A(a.parents[0].id).name)}</span>` : "";
+      return `<div class="node${current === a.id ? " active" : ""}" data-id="${a.id}"><span class="caret"></span><span class="nm">${esc(a.name)}${p}</span><span class="ct">${fmt(a.total)}</span></div>`;
+    }).join("") : `<div class="empty">No match</div>`;
+    return;
+  }
+  el.innerHTML = [...G.seeds].sort(byName).map(id => nodeHtml(id)).join("");
+}
+$("#tree").addEventListener("click", e => {
+  const t = e.target.closest("[data-toggle]");
+  if (t && t.dataset.toggle) { const id = t.dataset.toggle; expanded.has(id) ? expanded.delete(id) : expanded.add(id); renderTree(); return; }
+  const n = e.target.closest(".node");
+  if (n) { location.hash = `#/a/${n.dataset.id}`; $("#side").classList.remove("open"); }
+});
+$("#find").addEventListener("input", renderTree);
+// The pipeline updates BigQuery hourly; the server re-reads it every 10 min. Pick that up quietly:
+// refresh sidebar counts only, so the page being read doesn't jump.
+setInterval(async () => { try { G = await api("/api/graph"); renderTree(); } catch (_) { /* keep old data */ } }, 10 * 60 * 1000);
+
+/* ---------- events list ---------- */
+function eventHtml(e, showArtist) {
+  const p = e.payload || {};
+  const when = e.type === "concert" || !e.published_at ? e.event_time : e.published_at;
+  const thumb = e.source === "youtube" ? `<img loading="lazy" src="https://i.ytimg.com/vi/${encodeURIComponent(e.source_id)}/mqdefault.jpg" alt="">` : "";
+  const bits = [`<span class="pill ${esc(e.type)}">${esc(e.type)}</span>`];
+  if (p.topic && p.topic !== "general") bits.push(`<span class="topic">${esc(p.topic)}</span>`);
+  let days = null;
+  if (when) {
+    const today = new Date(); const t0 = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+    const w = new Date(when);
+    const t1 = dateOnly(when) ? Date.UTC(w.getUTCFullYear(), w.getUTCMonth(), w.getUTCDate()) : Date.UTC(w.getFullYear(), w.getMonth(), w.getDate());
+    days = Math.round((t1 - t0) / 86400000);
+  }
+  const ahead = when && (new Date(when) > Date.now() || (dateOnly(when) && days === 0));
+  if (ahead && days >= 0) bits.unshift(`<span class="soon">${days === 0 ? "today" : `in ${days} day${days === 1 ? "" : "s"}`}</span>`);
+  if (showArtist && A(e.artist_id)) bits.push(`<a href="#/a/${e.artist_id}">${esc(A(e.artist_id).name)}</a>`);
+  bits.push(esc(SOURCES[e.source] || e.source));
+  const place = [p.venue, p.city, p.country].filter(Boolean).join(", ");
+  if (place) bits.push(esc(place));
+  if (p.tour) bits.push(esc(p.tour));
+  if (p.outlet) bits.push(esc(p.outlet));
+  if (p.subreddit) bits.push(`r/${esc(p.subreddit)}`);
+  if (p.kinds && p.kinds.length) bits.push(esc(p.kinds.join(" · ")));
+  if (p.songs) bits.push(`${p.songs} songs`);
+  const title = e.url ? `<a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.title)}</a>` : esc(e.title);
+  return `<div class="ev"><div class="date">${day(when)}</div><div class="body">${thumb}<div><div class="t">${title}</div><div class="meta">${bits.join("<span>·</span>")}</div></div></div></div>`;
+}
+
+function eventList(container, base, showArtist) {
+  let offset = 0;
+  const PAGE = 50;
+  container.innerHTML = `<div class="list"><div class="loading">Loading…</div></div>`;
+  const list = $(".list", container);
+  async function more() {
+    const btn = $(".more", list); if (btn) btn.remove();
+    try {
+      const rows = await api("/api/events", { ...base, offset, limit: PAGE });
+      if (offset === 0) list.innerHTML = "";
+      if (!rows.length && offset === 0) {
+        list.innerHTML = `<div class="empty">${base.upcoming
+          ? "No upcoming official releases or concerts, and no official teasers in the last 30 days."
+          : "Nothing here yet."}</div>`;
+        return;
+      }
+      list.insertAdjacentHTML("beforeend", rows.map(r => eventHtml(r, showArtist)).join(""));
+      offset += rows.length;
+      if (rows.length === PAGE) {
+        list.insertAdjacentHTML("beforeend", `<div class="more"><button>Load more</button></div>`);
+        $(".more button", list).onclick = more;
+      }
+    } catch (err) { list.innerHTML = `<div class="empty err">${esc(err.message)}</div>`; }
+  }
+  more();
+}
+
+/* filter bar shared by home and artist pages */
+function filterBar(host, counts, onChange, extraHtml = "") {
+  const tabs = [["", "All"], ["upcoming", "Upcoming (official)"], ...TYPES.filter(t => counts[t]).map(t => [t, `${LABEL[t]} ${fmt(counts[t])}`])];
+  host.innerHTML = `<div class="toolbar"><div class="chips">${tabs.map(([k, l], i) => `<span class="chip${i === 0 ? " on" : ""}" data-k="${k}">${l}</span>`).join("")}</div>
+    <input type="search" placeholder="Search titles…">${extraHtml}</div><div class="events"></div>`;
+  let state = { tab: "", q: "" };
+  const fire = () => onChange(state, $(".events", host));
+  host.querySelectorAll(".chip").forEach(c => c.onclick = () => {
+    host.querySelectorAll(".chip").forEach(x => x.classList.toggle("on", x === c));
+    state.tab = c.dataset.k; fire();
+  });
+  let t; $("input[type=search]", host).oninput = e => { clearTimeout(t); t = setTimeout(() => { state.q = e.target.value; fire(); }, 300); };
+  fire();
+  return { setTab(k) { const c = host.querySelector(`.chip[data-k="${k}"]`); if (c) c.click(); } };
+}
+const toQuery = (state, ids) => state.tab === "upcoming"
+  ? { ids, upcoming: true, q: state.q } : { ids, type: state.tab, q: state.q };
+
+/* ---------- pages ---------- */
+function renderArtist(id) {
+  const a = A(id);
+  if (!a) { $("#view").innerHTML = `<div class="empty">Unknown artist.</div>`; return; }
+  const kids = a.children.filter((c, i, arr) => arr.findIndex(x => x.id === c.id) === i);
+  const subunits = kids.filter(c => c.relation === "subgroup" || A(c.id).kind === "group");
+  const members = kids.filter(c => !subunits.includes(c));
+  let include = kids.length > 0;
+  const ids = () => include ? descendants(id) : [id];
+
+  const chip = c => `<a class="chip${c.ended ? " former" : ""}" href="#/a/${c.id}" title="${c.ended ? "former" : ""}">${esc(A(c.id).name)}</a>`;
+  const parents = a.parents.length ? `<div class="sub">${a.parents.map(p => `${p.ended ? "Former " : ""}${p.relation === "subgroup" ? "sub-unit" : p.relation} of <a href="#/a/${p.id}">${esc(A(p.id).name)}</a>`).join(" · ")}</div>` : "";
+  const links = [
+    `<a href="https://musicbrainz.org/artist/${a.id}" target="_blank" rel="noopener">MusicBrainz</a>`,
+    a.youtube_channel_id ? `<a href="https://www.youtube.com/channel/${esc(a.youtube_channel_id)}" target="_blank" rel="noopener">YouTube</a>` : "",
+    a.subreddit ? `<a href="https://www.reddit.com/r/${esc(a.subreddit)}" target="_blank" rel="noopener">r/${esc(a.subreddit)}</a>` : "",
+  ].filter(Boolean).join("");
+
+  $("#view").innerHTML = `
+    <button class="menu-btn" onclick="document.getElementById('side').classList.add('open')">☰ Artists</button>
+    <div><a class="back" href="#/">← All artists dashboard</a></div>
+    <h1>${esc(a.name)}</h1>
+    <div class="sub">${esc(a.kind)}${a.mb_name !== a.name ? ` · ${esc(a.mb_name)}` : ""}${a.last ? ` · last activity ${day(a.last)}` : ""}</div>
+    ${parents}
+    <div class="links">${links}</div>
+    ${subunits.length ? `<h2>Sub-units</h2><div class="chips">${subunits.sort((x, y) => x.ended - y.ended || byName(x.id, y.id)).map(chip).join("")}</div>` : ""}
+    ${members.length ? `<h2>Members</h2><div class="chips">${members.sort((x, y) => x.ended - y.ended || byName(x.id, y.id)).map(chip).join("")}</div>` : ""}
+    <div class="tiles" id="tiles"></div>
+    <div id="feed"></div>`;
+
+  let bar;
+  function draw() {
+    const counts = sumCounts(ids());
+    $("#tiles").innerHTML = TYPES.map(t => `<div class="tile" data-k="${t}"><div class="v">${fmt(counts[t])}</div><div class="l">${LABEL[t]}</div></div>`).join("");
+    $("#tiles").querySelectorAll(".tile").forEach(el => el.onclick = () => bar.setTab(el.dataset.k));
+    const extra = kids.length ? `<label class="toggle"><input type="checkbox" id="inc" ${include ? "checked" : ""}> include members &amp; sub-units</label>` : "";
+    bar = filterBar($("#feed"), counts, (state, el) => eventList(el, toQuery(state, ids()), include), extra);
+    const inc = $("#inc");
+    if (inc) inc.onchange = () => { include = inc.checked; draw(); };
+  }
+  draw();
+}
+
+async function renderHome() {
+  const all = Object.keys(G.artists);
+  const counts = sumCounts(all);
+  $("#view").innerHTML = `
+    <button class="menu-btn" onclick="document.getElementById('side').classList.add('open')">☰ Artists</button>
+    <h1>Everything you follow</h1>
+    <div class="sub">${fmt(G.seeds.length)} followed artists → ${fmt(all.length)} including members and sub-units · ${fmt(totalOf(all))} events</div>
+    <div class="tiles">${TYPES.map(t => `<div class="tile" data-k="${t}"><div class="v">${fmt(counts[t])}</div><div class="l">${LABEL[t]}</div></div>`).join("")}</div>
+    <h2>Pipeline status</h2><div id="status"><div class="loading">Loading…</div></div>
+    <h2>Latest</h2><div id="feed"></div>`;
+  const bar = filterBar($("#feed"), counts, (state, el) => eventList(el, toQuery(state, []), true));
+  document.querySelectorAll(".tiles .tile").forEach(el => el.onclick = () => bar.setTab(el.dataset.k));
+  const statusEl = $("#status");
+  try {
+    const s = await api("/api/status");
+    if (!statusEl.isConnected) return;   // user navigated away while this loaded
+    statusEl.innerHTML = `<table><tr><th>Source</th><th>Last run</th><th>Status</th><th class="num">New last run</th><th class="num">Errors 24h</th><th class="num">Total rows</th></tr>
+      ${s.sources.map(r => `<tr><td>${esc(SOURCES[r.source] || r.source)}</td><td>${ago(r.last_finished)}</td>
+        <td class="${r.last_status === "ok" ? "ok" : "err"}" title="${esc(r.last_error || "")}">${esc(r.last_status)}</td>
+        <td class="num">${fmt(r.last_new)}</td><td class="num ${r.errors_24h ? "err" : ""}">${fmt(r.errors_24h)}</td><td class="num">${fmt(r.total)}</td></tr>`).join("")}</table>`;
+  } catch (err) { if (statusEl.isConnected) statusEl.innerHTML = `<div class="empty err">${esc(err.message)}</div>`; }
+}
+
+function route() {
+  const m = location.hash.match(/^#\/a\/([0-9a-f-]{36})/);
+  current = m ? m[1] : null;
+  if (current && A(current)) {   // expand this artist and the path to it in the tree
+    if (A(current).children.length) expanded.add(current);
+    let p = A(current).parents[0];
+    while (p && !expanded.has(p.id)) { expanded.add(p.id); p = A(p.id).parents[0]; }
+  }
+  renderTree();
+  $("#home").classList.toggle("active", !current);
+  current ? renderArtist(current) : renderHome();
+  $("main").scrollTop = 0; window.scrollTo(0, 0);
+}
+window.addEventListener("hashchange", route);
+
+(async () => {
+  try { G = await api("/api/graph"); route(); }
+  catch (err) { $("#view").innerHTML = `<div class="empty err">Could not load data: ${esc(err.message)}<br>Is <code>gcloud auth application-default login</code> done?</div>`; $("#tree").innerHTML = ""; }
+})();
+</script>
+</body>
+</html>

@@ -184,6 +184,26 @@ def merge_staging() -> int:
     return _count("events") - before
 
 
+def purge(sources: list[str]) -> int:
+    """Remove every event from the given sources. Returns rows removed.
+
+    Sandbox: atomic rewrite of `events` without those rows. Billing mode: DELETE.
+    """
+    from google.cloud import bigquery
+
+    events = tbl("events")
+    before = _count("events")
+    params = [bigquery.ArrayQueryParameter("s", "STRING", list(sources))]
+    if config.BQ_USE_DML:
+        client().query(f"DELETE FROM `{events}` WHERE source IN UNNEST(@s)",
+                       job_config=bigquery.QueryJobConfig(query_parameters=params)).result()
+    else:
+        cfg = bigquery.QueryJobConfig(destination=events, write_disposition="WRITE_TRUNCATE",
+                                      clustering_fields=["artist_id", "type"], query_parameters=params)
+        client().query(f"SELECT * FROM `{events}` WHERE source NOT IN UNNEST(@s)", job_config=cfg).result()
+    return before - _count("events")
+
+
 def last_watermark(source: str) -> datetime | None:
     rows = query(
         f"SELECT MAX(watermark) AS w FROM `{tbl('ingest_runs')}` WHERE source = @s AND status = 'ok'",

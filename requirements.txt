@@ -3,3 +3,4 @@ requests>=2.32
 feedparser>=6.0
 python-dotenv>=1.0
 pyarrow>=17
+flask>=3.0  # local viewer only (web/app.py)

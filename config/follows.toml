@@ -10,6 +10,10 @@
 #   subreddit          fan subreddit name (no "r/")
 #   news_query         Google News query, for names that are common words
 #                      (default: "Name", or "Member" "Group" for members)
+#   news_strict        default true: a headline must name the artist AND have music context
+#                      (a music word, a related member/group, or the exact ALL-CAPS name).
+#                      Members always need their group named. Set false to accept any headline
+#                      naming the artist.
 
 # ===================== K-pop =====================
 [[artist]]

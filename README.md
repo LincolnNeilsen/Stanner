@@ -25,6 +25,12 @@ python -m stanner run musicbrainz setlistfm      # what daily.yml runs
 python -m stanner run youtube news reddit ticketmaster   # what hourly.yml runs
 ```
 
+## Viewer (local)
+```powershell
+.\.venv\Scripts\python web\app.py    # then open http://127.0.0.1:5000
+```
+Browse followed artists as a tree (group → sub-units → members), with per-artist releases, videos, concerts, news, upcoming events, and pipeline status. Reads BigQuery with your `gcloud auth application-default login` credentials; nothing is deployed.
+
 ## Design notes
 - **Artist tree.** Each seed follow is expanded through MusicBrainz `member of band` and `subgroup` relations, to any depth (cap 6). Members' own release groups are their solo activity.
 - **Idempotency.** Each run loads into `events_staging` (truncate), then adds only rows whose `(source, source_id)` is not already in `events`. The BigQuery sandbox has no DML, so this is one atomic query job that rewrites `events` as `events UNION ALL new_rows`; with billing enabled, `BQ_USE_DML=true` switches to a real `MERGE`. Running a fetcher twice leaves the row count unchanged.

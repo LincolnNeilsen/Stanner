@@ -30,7 +30,8 @@ def refresh_artist_tree(dry_run: bool) -> list[dict]:
     return tree
 
 
-def run_source(name: str, dry_run: bool = False) -> bool:
+def run_source(name: str, dry_run: bool = False, full: bool = False) -> bool:
+    """full=True ignores the watermark (re-fetch everything the source still exposes)."""
     mod = SOURCES[name]
     started = bq.now()
     run = {"run_id": uuid.uuid4().hex, "source": name, "mode": "live", "started_at": started,
@@ -40,7 +41,7 @@ def run_source(name: str, dry_run: bool = False) -> bool:
             arts = refresh_artist_tree(dry_run)
         else:
             arts = artists_mod.followed(offline=dry_run)
-        wm = None if dry_run else bq.last_watermark(name)
+        wm = None if dry_run or full else bq.last_watermark(name)
         since = wm - timedelta(days=config.OVERLAP_DAYS) if wm else None
         print(f"[{name}] {len(arts)} artists, since={since}")
         rows = mod.fetch(arts, since)
