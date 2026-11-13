@@ -257,11 +257,11 @@ code { font: 0.88em var(--mono); background: var(--accent-soft); padding: 1px 5p
         <text class="s" x="1072" y="243">(grace: 3 h hourly)</text>
         <path class="wire" d="M1014 515 H1058" marker-end="url(#ah)"/>
         <path class="wire" d="M1014 640 H1058" marker-end="url(#ah)"/>
-        <rect class="box dash pend" x="1060" y="470" width="160" height="96" rx="6"/>
+        <rect class="box" x="1060" y="470" width="160" height="96" rx="6"/>
         <text class="t" x="1072" y="493">Looker Studio</text>
         <text class="s" x="1072" y="512">rows per run</text>
-        <text class="s" x="1072" y="529">this year vs 10-yr</text>
-        <text class="sp" x="1072" y="551">planned</text>
+        <text class="s" x="1072" y="529">source health</text>
+        <text class="s" x="1072" y="546">this year vs 10-yr</text>
         <rect class="box" x="1060" y="590" width="160" height="100" rx="6"/>
         <text class="t" x="1072" y="613">Local viewer</text>
         <text class="s" x="1072" y="632">Flask + one page</text>
@@ -271,7 +271,7 @@ code { font: 0.88em var(--mono); background: var(--accent-soft); padding: 1px 5p
     </div>
     <figcaption>
       <span class="key"><i></i> running</span>
-      <span class="key"><i class="dash"></i> skipped, planned or pending</span>
+      <span class="key"><i class="dash"></i> skipped or pending</span>
       <span class="key"><i class="arrow"></i> data flow (dashed: auth)</span>
     </figcaption>
   </figure>
@@ -289,8 +289,8 @@ code { font: 0.88em var(--mono); background: var(--accent-soft); padding: 1px 5p
           <td>A few hundred rows an hour. Direct batch load jobs handle that without a queue.</td></tr>
         <tr><td>4 · Store</td><td>BigQuery sandbox, dataset <code>artist_pipeline</code></td>
           <td>Free with no card: 10 GB storage and 1 TB of queries a month. About 56k rows is a few tens of MB. The sandbox has no streaming inserts or DML, so every write is a load job and dedupe is one atomic rewrite.</td></tr>
-        <tr><td>5 · Prove it's alive</td><td>healthchecks.io, Looker Studio (planned) and a local viewer</td>
-          <td>healthchecks.io is a free dead-man's switch: every run pings it, and it emails when a run fails or when pings stop, which catches a job that never starts. Looker Studio connects to BigQuery for free and will chart rows arriving per unattended run, plus this year against the 10-year monthly average.</td></tr>
+        <tr><td>5 · Prove it's alive</td><td>Looker Studio, healthchecks.io and a local viewer</td>
+          <td>Looker Studio connects to BigQuery for free. It charts rows arriving per unattended run, shows each source's last run and errors, and compares this year with the 10-year monthly average. healthchecks.io is a free dead-man's switch: every run pings it, and it emails when a run fails or when pings stop, which catches a job that never starts.</td></tr>
       </table>
     </div>
   </section>
