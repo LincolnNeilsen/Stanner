@@ -19,9 +19,18 @@ _CHANNEL_RX = re.compile(r"youtube\.com/channel/(UC[\w-]{22})")
 _HANDLE_RX = re.compile(r"youtube\.com/(@[\w.\-]+|user/[\w.\-]+|c/[\w.\-]+)")
 
 
+# MusicBrainz throttles by IP with 503s; shared GitHub runner IPs hit this even at 1 req/s.
+# Be patient: 8 retries with backoff 3s, 6s, 12s ... (capped at 120s), honoring Retry-After.
+_RETRY = {"retries": 8, "backoff": 3}
+warnings: list[str] = []  # per-run notes the pipeline records in ingest_runs.error
+
+
+def _get(url, params):
+    return get(url, params=params, limiter=_limit, **_RETRY)
+
+
 def lookup(mbid: str) -> dict:
-    return get(f"{API}/artist/{mbid}", params={"inc": "artist-rels+url-rels+aliases", "fmt": "json"},
-               limiter=_limit).json()
+    return _get(f"{API}/artist/{mbid}", {"inc": "artist-rels+url-rels+aliases", "fmt": "json"}).json()
 
 
 def _english_name(a: dict) -> str:
@@ -89,8 +98,7 @@ def crawl(follows: list[str], overrides: dict) -> tuple[dict, list, dict]:
 def release_groups(mbid: str) -> list[dict]:
     out, offset = [], 0
     while True:
-        d = get(f"{API}/release-group", params={"artist": mbid, "limit": 100, "offset": offset, "fmt": "json"},
-                limiter=_limit).json()
+        d = _get(f"{API}/release-group", {"artist": mbid, "limit": 100, "offset": offset, "fmt": "json"}).json()
         out += d["release-groups"]
         offset += len(d["release-groups"])
         if not d["release-groups"] or offset >= d["release-group-count"]:
@@ -110,8 +118,20 @@ def to_event(rg: dict, artist_id: str) -> dict:
 
 
 def fetch(artists: list[dict], since) -> list[dict]:
-    """Release groups are not filterable by date, so fetch all; dedupe drops the known ones."""
-    rows = []
+    """Release groups are not filterable by date, so fetch all; dedupe drops the known ones.
+
+    One artist failing (after retries) is skipped and noted, not fatal: the next daily run
+    re-reads everything. The run fails only if most artists fail (MusicBrainz is down).
+    """
+    rows, failed = [], []
     for a in artists:
-        rows += [to_event(rg, a["id"]) for rg in release_groups(a["id"])]
+        try:
+            rows += [to_event(rg, a["id"]) for rg in release_groups(a["id"])]
+        except Exception as e:  # noqa: BLE001
+            failed.append(a["name"])
+            print(f"  musicbrainz: skipped {a['name']}: {type(e).__name__}")
+    if failed and len(failed) > len(artists) / 2:
+        raise RuntimeError(f"MusicBrainz unavailable: {len(failed)}/{len(artists)} artists failed")
+    if failed:
+        warnings.append(f"partial: release groups skipped for {len(failed)} artists ({', '.join(failed[:10])})")
     return rows

@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Stanner Architecture</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one wide diagram that scrolls inside its own frame on phones, then two reference sections. */
+:root {
+  --bg: #f6f7f9; --surface: #ffffff; --group: #eef1f5; --fg: #17202b; --muted: #5b6676;
+  --line: #c9d0da; --accent: #0b6e8a; --accent-soft: #e2f0f4; --pending: #8a6a0b;
+  --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11161c; --surface: #1a2129; --group: #151b22; --fg: #e6ebf1; --muted: #9aa6b5;
+    --line: #34404d; --accent: #5cc3df; --accent-soft: #16303a; --pending: #e0b84a; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11161c; --surface: #1a2129; --group: #151b22; --fg: #e6ebf1; --muted: #9aa6b5;
+  --line: #34404d; --accent: #5cc3df; --accent-soft: #16303a; --pending: #e0b84a; color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 15px/1.55 var(--sans); }
+.page { max-width: 1240px; margin: 0 auto; padding-block: 32px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+header { display: grid; gap: 6px; max-width: 72ch; }
+.eyebrow { font: 500 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-size: clamp(26px, 4vw, 34px); line-height: 1.15; margin: 0; text-wrap: balance; }
+h2 { font-size: 19px; margin: 0 0 12px; text-wrap: balance; }
+p { margin: 0; }
+.lede { color: var(--muted); }
+figure { margin: 28px 0 0; }
+.frame { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+.frame svg { display: block; width: 100%; min-width: 980px; height: auto; }
+figcaption { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 10px; color: var(--muted); font-size: 13px; }
+.key { display: inline-flex; align-items: center; gap: 8px; }
+.key i { width: 26px; height: 14px; border: 1.5px solid var(--line); border-radius: 3px; background: var(--surface); }
+.key i.dash { border-style: dashed; }
+.key i.arrow { border: 0; height: 2px; background: var(--accent); border-radius: 0; }
+
+/* SVG parts */
+.stage { font: 600 13px var(--sans); fill: var(--accent); letter-spacing: .02em; }
+.rule { stroke: var(--accent); stroke-width: 2; }
+.grp { fill: var(--group); stroke: var(--line); stroke-width: 1; }
+.box { fill: var(--surface); stroke: var(--line); stroke-width: 1.2; }
+.dash { stroke-dasharray: 5 4; }
+.pend { stroke: var(--pending); }
+.t { fill: var(--fg); font: 600 13px var(--sans); }
+.tg { fill: var(--fg); font: 700 14px var(--sans); }
+.ts { fill: var(--fg); font: 600 12px var(--sans); }
+.s { fill: var(--muted); font: 11px var(--mono); }
+.sp { fill: var(--pending); font: 500 11px var(--mono); }
+.v { fill: var(--fg); font: 500 11.5px var(--mono); }
+.wire { stroke: var(--accent); stroke-width: 1.6; fill: none; }
+.wire.auth { stroke-dasharray: 5 4; }
+.head { fill: var(--accent); }
+
+section { margin-top: 40px; }
+.tablewrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+th, td { text-align: left; vertical-align: top; padding: 12px 14px; border-top: 1px solid var(--line); }
+th { border-top: 0; font: 500 12px var(--mono); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+td:first-child { white-space: nowrap; font-weight: 600; }
+td:nth-child(2) { min-width: 200px; }
+td:nth-child(3) { color: var(--muted); min-width: 280px; }
+code { font: 0.88em var(--mono); background: var(--accent-soft); padding: 1px 5px; border-radius: 4px; }
+.reqs { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.req { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.req h3 { margin: 0; font-size: 15px; }
+.req p { color: var(--muted); font-size: 14px; }
+.asof { margin-top: 28px; color: var(--muted); font-size: 13px; }
+
+/* PDF / print: landscape Letter, light palette, diagram on page 1, details on page 2. */
+@page { size: 11in 8.5in; margin: 0.35in; }
+@media print {
+  :root, :root[data-theme="dark"] {
+    --bg: #ffffff; --surface: #ffffff; --group: #eef1f5; --fg: #17202b; --muted: #4f5a69;
+    --line: #b9c2ce; --accent: #0b6e8a; --accent-soft: #e2f0f4; --pending: #8a6a0b; color-scheme: light;
+  }
+  body { font-size: 12px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .page { max-width: none; padding: 0; }
+  header { max-width: none; gap: 2px; }
+  h1 { font-size: 22px; }
+  .lede { font-size: 12px; }
+  figure { margin-top: 10px; }
+  .frame { padding: 6px; border-radius: 6px; }
+  .frame svg { min-width: 0; max-height: 6.15in; }
+  figcaption { margin-top: 4px; font-size: 11px; }
+  section { margin-top: 18px; }
+  section.why { break-before: page; margin-top: 0; }
+  h2 { font-size: 15px; margin-bottom: 8px; }
+  th, td { padding: 6px 9px; font-size: 11px; }
+  .reqs { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .req { padding: 9px; gap: 3px; }
+  .req h3 { font-size: 12px; }
+  .req p { font-size: 10.5px; }
+  .asof { margin-top: 10px; font-size: 10px; }
+  table, .req { break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+
+<div class="page">
+  <header>
+    <span class="eyebrow">CS 452 · Build a Pipeline</span>
+    <h1>Stanner: artist activity pipeline</h1>
+    <p class="lede">Tracks releases, official videos, concerts and news for 39 followed artists, expanded to 224 through their members and sub-units. History was bulk-loaded once; new data arrives every hour on its own.</p>
+  </header>
+
+  <figure>
+    <div class="frame">
+      <svg viewBox="0 0 1240 750" role="img" aria-labelledby="dt dd">
+        <title id="dt">Stanner pipeline architecture</title>
+        <desc id="dd">Five sources feed GitHub Actions jobs triggered hourly by cron-job.org (live) and a one-time laptop seed. Each run pings healthchecks.io. Both batch-load into BigQuery staging, are deduplicated into the events table, and are read through views by Looker Studio and a local viewer.</desc>
+        <defs>
+          <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path class="head" d="M0,0 L10,5 L0,10 z"/>
+          </marker>
+        </defs>
+
+        <!-- stage headers -->
+        <text class="stage" x="20" y="38">1 · SOURCES</text>
+        <line class="rule" x1="20" y1="50" x2="220" y2="50"/>
+        <text class="stage" x="270" y="38">2 · INGESTION</text>
+        <line class="rule" x1="270" y1="50" x2="570" y2="50"/>
+        <text class="stage" x="600" y="38">3 · BUFFER</text>
+        <line class="rule" x1="600" y1="50" x2="700" y2="50"/>
+        <text class="stage" x="740" y="38">4 · ANALYTICAL STORE</text>
+        <line class="rule" x1="740" y1="50" x2="1030" y2="50"/>
+        <text class="stage" x="1060" y="38">5 · PROVE IT'S ALIVE</text>
+        <line class="rule" x1="1060" y1="50" x2="1220" y2="50"/>
+
+        <!-- 1 · sources -->
+        <rect class="box" x="20" y="80" width="200" height="56" rx="6"/>
+        <text class="t" x="32" y="103">MusicBrainz API</text><text class="s" x="32" y="122">artist tree · releases</text>
+        <rect class="box" x="20" y="150" width="200" height="56" rx="6"/>
+        <text class="t" x="32" y="173">YouTube</text><text class="s" x="32" y="192">RSS live · Data API seed</text>
+        <rect class="box" x="20" y="220" width="200" height="56" rx="6"/>
+        <text class="t" x="32" y="243">setlist.fm API</text><text class="s" x="32" y="262">past concerts</text>
+        <rect class="box" x="20" y="290" width="200" height="56" rx="6"/>
+        <text class="t" x="32" y="313">Google News RSS</text><text class="s" x="32" y="332">headlines, filtered</text>
+        <rect class="box" x="20" y="360" width="200" height="56" rx="6"/>
+        <text class="t" x="32" y="383">Reddit RSS</text><text class="s" x="32" y="402">fan-sub update posts</text>
+        <rect class="box dash pend" x="20" y="430" width="200" height="56" rx="6"/>
+        <text class="t" x="32" y="453">Ticketmaster API</text><text class="sp" x="32" y="472">upcoming · key pending</text>
+
+        <!-- source bus -->
+        <path class="wire" d="M220 108 H245 M220 178 H245 M220 248 H245 M220 318 H245 M220 388 H245 M220 458 H245 M245 108 V485"/>
+        <path class="wire" d="M245 228 H284" marker-end="url(#ah)"/>
+        <path class="wire" d="M245 485 H284" marker-end="url(#ah)"/>
+
+        <!-- 2 · live ingestion -->
+        <rect class="grp" x="270" y="80" width="300" height="300" rx="8"/>
+        <text class="tg" x="286" y="104">GitHub Actions</text>
+        <text class="s" x="286" y="121">public repo · runs unattended</text>
+        <rect class="box" x="286" y="130" width="268" height="56" rx="6"/>
+        <text class="t" x="298" y="149">Triggers</text>
+        <text class="s" x="298" y="166">cron-job.org → workflow_dispatch</text>
+        <text class="s" x="298" y="180">GitHub cron (:17) as backup</text>
+        <path class="wire" d="M420 186 V194" marker-end="url(#ah)"/>
+        <rect class="box" x="286" y="196" width="268" height="44" rx="6"/>
+        <text class="t" x="298" y="214">hourly.yml · every hour</text><text class="s" x="298" y="231">youtube · news · reddit</text>
+        <rect class="box" x="286" y="248" width="268" height="44" rx="6"/>
+        <text class="t" x="298" y="266">daily.yml · 09:41 UTC</text><text class="s" x="298" y="283">musicbrainz · setlistfm</text>
+        <path class="wire" d="M420 292 V298" marker-end="url(#ah)"/>
+        <rect class="box" x="286" y="300" width="268" height="72" rx="6"/>
+        <text class="t" x="298" y="319">Python fetchers (stanner/)</text>
+        <text class="s" x="298" y="337">since = watermark − 1 day</text>
+        <text class="s" x="298" y="354">load job → staging · log run</text>
+
+        <!-- run health pings → healthchecks.io -->
+        <path class="wire auth" d="M560 80 V66 H1140 V148" marker-end="url(#ah)"/>
+        <text class="s" x="850" y="62" text-anchor="middle">pings: start · success · fail</text>
+
+        <!-- 2 · one-time seed -->
+        <rect class="grp" x="270" y="410" width="300" height="230" rx="8"/>
+        <text class="tg" x="286" y="434">One-time seed · laptop</text>
+        <text class="s" x="286" y="451">separate bulk path, run once</text>
+        <rect class="box" x="286" y="462" width="268" height="46" rx="6"/>
+        <text class="t" x="298" y="481">seed fetch</text><text class="s" x="298" y="498">MusicBrainz · YouTube API · setlist.fm</text>
+        <path class="wire" d="M420 508 V520" marker-end="url(#ah)"/>
+        <rect class="box" x="286" y="522" width="268" height="46" rx="6"/>
+        <text class="t" x="298" y="541">data/raw/ · JSON, ~72 MB</text><text class="s" x="298" y="558">saved copy; reload without re-pulling</text>
+        <path class="wire" d="M420 568 V580" marker-end="url(#ah)"/>
+        <rect class="box" x="286" y="582" width="268" height="46" rx="6"/>
+        <text class="t" x="298" y="601">seed load</text><text class="s" x="298" y="618">raw → Parquet → bq load job</text>
+
+        <!-- 2 · secrets -->
+        <rect class="box" x="270" y="660" width="300" height="70" rx="6"/>
+        <text class="t" x="286" y="682">Secrets</text>
+        <text class="s" x="286" y="700">API keys in GitHub Secrets</text>
+        <text class="s" x="286" y="717">BigQuery via Workload Identity Fed.</text>
+        <path class="wire auth" d="M570 695 H738" marker-end="url(#ah)"/>
+        <text class="s" x="655" y="687" text-anchor="middle">short-lived token</text>
+
+        <!-- 3 · buffer (skipped) -->
+        <rect class="box dash" x="600" y="110" width="100" height="150" rx="6"/>
+        <text class="t" x="650" y="140" text-anchor="middle">Buffer</text>
+        <text class="sp" x="650" y="160" text-anchor="middle">skipped</text>
+        <text class="s" x="650" y="190" text-anchor="middle">direct batch</text>
+        <text class="s" x="650" y="207" text-anchor="middle">loads are fine</text>
+        <text class="s" x="650" y="224" text-anchor="middle">at ~300 rows</text>
+        <text class="s" x="650" y="241" text-anchor="middle">per hour</text>
+
+        <!-- ingestion → BigQuery -->
+        <path class="wire" d="M554 320 H715 M554 605 H715 V159"/>
+        <path class="wire" d="M715 159 H754" marker-end="url(#ah)"/>
+        <text class="s" x="634" y="312" text-anchor="middle">hourly / daily</text>
+        <text class="s" x="634" y="597" text-anchor="middle">once</text>
+
+        <!-- 4 · BigQuery -->
+        <rect class="grp" x="740" y="80" width="290" height="650" rx="8"/>
+        <text class="tg" x="756" y="104">BigQuery sandbox</text>
+        <text class="s" x="756" y="121">dataset artist_pipeline · free tier</text>
+        <rect class="box" x="756" y="134" width="258" height="50" rx="6"/>
+        <text class="t" x="768" y="155">events_staging</text><text class="s" x="768" y="173">bronze · replaced each run</text>
+        <path class="wire" d="M885 184 V202" marker-end="url(#ah)"/>
+        <rect class="box" x="756" y="204" width="258" height="64" rx="6"/>
+        <text class="t" x="768" y="225">dedupe on (source, source_id)</text>
+        <text class="s" x="768" y="243">add only new keys in one atomic</text>
+        <text class="s" x="768" y="259">rewrite (sandbox has no MERGE)</text>
+        <path class="wire" d="M885 268 V284" marker-end="url(#ah)"/>
+        <rect class="box" x="756" y="286" width="258" height="56" rx="6"/>
+        <text class="t" x="768" y="308">events · ~56k rows</text><text class="s" x="768" y="327">silver · clustered artist, type</text>
+
+        <rect class="box" x="756" y="362" width="76" height="52" rx="6"/>
+        <text class="ts" x="794" y="384" text-anchor="middle">artists</text><text class="s" x="794" y="402" text-anchor="middle">224</text>
+        <rect class="box" x="847" y="362" width="76" height="52" rx="6"/>
+        <text class="ts" x="885" y="384" text-anchor="middle">links</text><text class="s" x="885" y="402" text-anchor="middle">279 edges</text>
+        <rect class="box" x="938" y="362" width="76" height="52" rx="6"/>
+        <text class="ts" x="976" y="384" text-anchor="middle">ingest_runs</text><text class="s" x="976" y="402" text-anchor="middle">watermarks</text>
+        <path class="wire" d="M839 342 V432" marker-end="url(#ah)"/>
+
+        <rect class="box" x="756" y="434" width="258" height="282" rx="6"/>
+        <text class="t" x="768" y="457">Views</text><text class="s" x="812" y="457">silver → gold</text>
+        <text class="v" x="768" y="490">followed_artists</text><text class="s" x="1002" y="490" text-anchor="end">recursive tree</text>
+        <text class="v" x="768" y="516">events_enriched</text><text class="s" x="1002" y="516" text-anchor="end">+ names</text>
+        <text class="v" x="768" y="542">upcoming_concerts</text>
+        <text class="v" x="768" y="568">feed_last_7d</text>
+        <text class="v" x="768" y="594">monthly_release_counts</text>
+        <text class="v" x="768" y="620">monthly_vs_10yr</text><text class="s" x="1002" y="620" text-anchor="end">vs 10-yr avg</text>
+        <text class="v" x="768" y="646">ingest_status</text><text class="s" x="1002" y="646" text-anchor="end">last run</text>
+        <text class="v" x="768" y="672">daily_growth</text><text class="s" x="1002" y="672" text-anchor="end">rows / day</text>
+
+        <!-- 5 · prove it's alive -->
+        <rect class="box" x="1060" y="150" width="160" height="104" rx="6"/>
+        <text class="t" x="1072" y="173">healthchecks.io</text>
+        <text class="s" x="1072" y="192">dead-man's switch</text>
+        <text class="s" x="1072" y="209">emails if a run fails</text>
+        <text class="s" x="1072" y="226">or runs stop arriving</text>
+        <text class="s" x="1072" y="243">(grace: 3 h hourly)</text>
+        <path class="wire" d="M1014 515 H1058" marker-end="url(#ah)"/>
+        <path class="wire" d="M1014 640 H1058" marker-end="url(#ah)"/>
+        <rect class="box dash pend" x="1060" y="470" width="160" height="96" rx="6"/>
+        <text class="t" x="1072" y="493">Looker Studio</text>
+        <text class="s" x="1072" y="512">rows per run</text>
+        <text class="s" x="1072" y="529">this year vs 10-yr</text>
+        <text class="sp" x="1072" y="551">planned</text>
+        <rect class="box" x="1060" y="590" width="160" height="100" rx="6"/>
+        <text class="t" x="1072" y="613">Local viewer</text>
+        <text class="s" x="1072" y="632">Flask + one page</text>
+        <text class="s" x="1072" y="649">artist tree, feeds,</text>
+        <text class="s" x="1072" y="666">pipeline status</text>
+      </svg>
+    </div>
+    <figcaption>
+      <span class="key"><i></i> running</span>
+      <span class="key"><i class="dash"></i> skipped, planned or pending</span>
+      <span class="key"><i class="arrow"></i> data flow (dashed: auth)</span>
+    </figcaption>
+  </figure>
+
+  <section class="why">
+    <h2>Why each stage</h2>
+    <div class="tablewrap">
+      <table>
+        <tr><th>Stage</th><th>Technology</th><th>Why</th></tr>
+        <tr><td>1 · Sources</td><td>MusicBrainz, YouTube, setlist.fm, Google News, Reddit. Ticketmaster once its key is approved.</td>
+          <td>Each covers one kind of activity: releases and the member tree, official videos and teasers, concerts, press. All are free. MusicBrainz IDs tie them together, and setlist.fm looks artists up by MusicBrainz ID directly.</td></tr>
+        <tr><td>2 · Ingestion</td><td>GitHub Actions running Python, triggered hourly by cron-job.org (GitHub's own cron as backup). Seed run once from a laptop.</td>
+          <td>Free for public repos, version-controlled, and runs while the laptop sleeps. GitHub's scheduler started only 3 of the first ~17 hourly slots, so an external scheduler calls the workflow-dispatch API, which GitHub runs right away. Fast feeds run hourly; MusicBrainz and setlist.fm run daily because they change slowly and MusicBrainz allows 1 request per second. The seed is a separate bulk path: pulled once, saved raw, then bulk-loaded.</td></tr>
+        <tr><td>3 · Buffer</td><td>Skipped</td>
+          <td>A few hundred rows an hour. Direct batch load jobs handle that without a queue.</td></tr>
+        <tr><td>4 · Store</td><td>BigQuery sandbox, dataset <code>artist_pipeline</code></td>
+          <td>Free with no card: 10 GB storage and 1 TB of queries a month. About 56k rows is a few tens of MB. The sandbox has no streaming inserts or DML, so every write is a load job and dedupe is one atomic rewrite.</td></tr>
+        <tr><td>5 · Prove it's alive</td><td>healthchecks.io, Looker Studio (planned) and a local viewer</td>
+          <td>healthchecks.io is a free dead-man's switch: every run pings it, and it emails when a run fails or when pings stop, which catches a job that never starts. Looker Studio connects to BigQuery for free and will chart rows arriving per unattended run, plus this year against the 10-year monthly average.</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Requirements</h2>
+    <div class="reqs">
+      <div class="req"><h3>Idempotency</h3>
+        <p>Each run loads into <code>events_staging</code>; only rows whose <code>(source, source_id)</code> is not already in <code>events</code> are added. Re-running the seed load added 0 rows, and the table has 0 duplicate keys.</p></div>
+      <div class="req"><h3>Gaps and failures</h3>
+        <p>Each source fetches from its last successful watermark minus one day. The seed's fetch time is the first watermark, which closes the seed-to-live gap. A failed run is logged as an error without moving the watermark, so the next good run backfills. Empty runs log <code>ok</code> with 0 new rows. RSS feeds only expose their latest items, so an outage longer than the feed window cannot be backfilled.</p></div>
+      <div class="req"><h3>Secrets</h3>
+        <p>API keys live in GitHub Secrets and a git-ignored <code>.env</code>. BigQuery access uses Workload Identity Federation, so no service-account key file exists anywhere.</p></div>
+      <div class="req"><h3>Monitoring</h3>
+        <p>Every run is logged in <code>ingest_runs</code> and pings healthchecks.io at start, success or failure. A failed run emails immediately; no successful ping within 3 hours (hourly) or 27 hours (daily) also emails, so a scheduler outage is caught too.</p></div>
+      <div class="req"><h3>Cost</h3>
+        <p>Expected $0: GitHub Actions is free for public repos, the BigQuery sandbox has no billing account, and every API, cron-job.org and healthchecks.io are on free tiers. Confirm in the GCP billing console before submitting.</p></div>
+    </div>
+  </section>
+
+  <p class="asof">As of November 13, 2026 · 56,369 events · source: docs/architecture.html</p>
+</div>
+</body>
+</html>

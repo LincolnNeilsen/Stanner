@@ -13,12 +13,23 @@ SOURCES = {m.NAME: m for m in (youtube, news, reddit, ticketmaster, musicbrainz,
 
 
 def refresh_artist_tree(dry_run: bool) -> list[dict]:
-    """Daily: re-walk the MusicBrainz tree and snapshot artists / links / follows."""
+    """Daily: re-walk the MusicBrainz tree and snapshot artists / links / follows.
+
+    If the walk fails partway (MusicBrainz throttling), keep the tree already in BigQuery:
+    writing a partial walk would silently drop artists from the followed tree.
+    """
     f = config.load_follows()
     if not f["follow"]:
         raise RuntimeError("config/follows.toml has no followed artists")
     print("Walking MusicBrainz tree...")
-    arts, links, _ = musicbrainz.crawl(f["follow"], f["overrides"])
+    try:
+        arts, links, _ = musicbrainz.crawl(f["follow"], f["overrides"])
+    except Exception as e:  # noqa: BLE001
+        if dry_run:
+            raise
+        musicbrainz.warnings.append(f"tree walk failed ({type(e).__name__}); kept existing artist tree")
+        print(f"  tree walk failed: {e}; using the artist tree already in BigQuery")
+        return artists_mod.followed()
     tree = artists_mod.write_cache(arts, links, f["follow"])
     if not dry_run:
         ts = bq.now()
@@ -58,6 +69,10 @@ def run_source(name: str, dry_run: bool = False, full: bool = False) -> bool:
             run["rows_new"] = bq.merge_staging()
         # Watermark = start of this run: everything published before it has now been seen.
         run.update(status="ok", watermark=started)
+        notes = getattr(mod, "warnings", None)
+        if notes:  # partial success: recorded for the dashboard, not a failure
+            run["error"] = "; ".join(notes)[:2000]
+            notes.clear()
         print(f"[{name}] fetched={len(rows)} new={run['rows_new']}")
         return True
     except Exception as e:  # noqa: BLE001

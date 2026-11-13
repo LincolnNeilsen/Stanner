@@ -132,15 +132,24 @@ LEFT JOIN m h
 WHERE cur.yr = EXTRACT(YEAR FROM CURRENT_DATE())
 GROUP BY month, cur.type, this_year
 ;;
--- Pipeline health: row growth and last run per source.
+-- Pipeline health: last run per source. Flat columns so dashboards can use them directly.
+-- rows_stored = rows currently in events (total_rows_new also counts rows later purged/reloaded).
 CREATE OR REPLACE VIEW `{ds}.ingest_status` AS
-SELECT source,
-       MAX(IF(status = 'ok', finished_at, NULL)) AS last_ok,
-       ARRAY_AGG(STRUCT(status, finished_at, rows_new, error) ORDER BY finished_at DESC LIMIT 1)[OFFSET(0)] AS last_run,
-       COUNTIF(status = 'error' AND finished_at >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 1 DAY)) AS errors_24h,
-       SUM(rows_new) AS total_rows_new
-FROM `{ds}.ingest_runs`
-GROUP BY source
+WITH r AS (
+  SELECT source,
+         MAX(IF(status = 'ok', finished_at, NULL)) AS last_ok,
+         ARRAY_AGG(STRUCT(status, finished_at, rows_new, error) ORDER BY finished_at DESC LIMIT 1)[OFFSET(0)] AS last_run,
+         COUNTIF(status = 'error' AND finished_at >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 1 DAY)) AS errors_24h,
+         SUM(rows_new) AS total_rows_new
+  FROM `{ds}.ingest_runs`
+  GROUP BY source
+)
+SELECT r.source, r.last_ok, r.last_run,
+       r.last_run.status AS last_status, r.last_run.finished_at AS last_finished,
+       r.last_run.rows_new AS last_new, r.last_run.error AS last_note,
+       r.errors_24h, r.total_rows_new, IFNULL(e.n, 0) AS rows_stored
+FROM r
+LEFT JOIN (SELECT source, COUNT(*) AS n FROM `{ds}.events` GROUP BY source) e USING (source)
 ;;
 CREATE OR REPLACE VIEW `{ds}.daily_growth` AS
 SELECT DATE(ingested_at) AS day, source, COUNT(*) AS rows_ingested
