@@ -20,7 +20,12 @@ jobs:
   ingest:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      # healthchecks.io dead-man's switch: alerts if pings stop (job never ran) or a /fail arrives.
+      HC_URL: ${{ secrets.HOURLYINGEST }}
     steps:
+      - name: Ping healthchecks (start)
+        run: '[ -z "$HC_URL" ] || curl -fsS -m 10 --retry 3 "$HC_URL/start" || true'
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
@@ -40,3 +45,9 @@ jobs:
           MUSICBRAINZ_USER_AGENT: ${{ secrets.MUSICBRAINZ_USER_AGENT || 'Stanner/0.1 (https://github.com/LincolnNeilsen/Stanner)' }}
         # ticketmaster: add back to this list once the developer account is approved
         run: python -m stanner run youtube news reddit
+      - name: Ping healthchecks (success)
+        if: success()
+        run: '[ -z "$HC_URL" ] || curl -fsS -m 10 --retry 3 "$HC_URL" || true'
+      - name: Ping healthchecks (fail)
+        if: failure()
+        run: '[ -z "$HC_URL" ] || curl -fsS -m 10 --retry 3 "$HC_URL/fail" || true'

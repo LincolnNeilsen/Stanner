@@ -78,6 +78,12 @@ Later goal (not in scope now): a multi-user web app where people make accounts a
 - `events` is not partitioned, because the sandbox's 60-day partition expiration would delete seeded history.
 - `auth.md` (git-ignored) tracks the accounts and keys needed.
 
+## Deferred: buffer layer
+The user wants a buffer later so heavier future use holds up. Options weighed (2026-11-12):
+- **Pub/Sub (preferred)**: needs a billing account linked to the GCP project (card on file; $0 expected at this volume; add a $1 budget alert). Fetchers publish to a topic; a separate loader drains it into BigQuery. Linking billing also leaves the sandbox, so switch `BQ_USE_DML=true` (real MERGE) and drop the 60-day table expiry.
+- Upstash Kafka/Redis: free, no card, but a second vendor and one more secret.
+- Append-only landing table drained by a separate step: free, but not a real queue.
+
 ## Not in the repo (recreate on a new machine)
 - `.env` (real keys) and `secrets/gcp-key.json`. These are git-ignored on purpose. Re-create them from the provider consoles, or move them through a password manager. Do not paste keys into chat or commit them.
 - GitHub login (`gh auth login`) and Git Credential Manager login on the new machine.
