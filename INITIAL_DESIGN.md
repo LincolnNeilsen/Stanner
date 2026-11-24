@@ -121,9 +121,3 @@ Planning assumption: about 30 to 40 hours total, finishing before the in-class p
 **If I fall behind:** the order of importance is (1) a working pipeline, (2) "when is artist ____'s next ____?", (3) accounts and per-user follows, (4) "best concert for me", (5) pricing, (6) calendar sync.
 
 **Optional if time allows:** Google Calendar API sync, email digest, "this year vs. 10-year average" chart per artist, and the buffer layer (Pub/Sub) noted in `HANDOFF.md`.
-
-## 5. Rough UX sketch (optional)
-
-![Stanner feed page wireframe](docs/initial-design-ux.png)
-
-*Wireframe made in FigJam ([board](https://www.figma.com/board/0RuyTM0kufOozDM4e9NMDi)).*
